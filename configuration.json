@@ -1,0 +1,8 @@
+{
+    "base_currency": "BTC",
+    "base_weight": "0.1",
+    "universe": ["ADA", "ALGO", "ATOM", "ETH", "LTC", "XTZ"],
+    "timestep": "10",
+    "execution_name": "alpha",
+    "portfolio_size": "4"
+}

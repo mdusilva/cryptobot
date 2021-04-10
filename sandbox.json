@@ -1,0 +1,7 @@
+{
+    "rest_url": "https://api-public.sandbox.pro.coinbase.com",
+    "wss_url": "wss://ws-feed-public.sandbox.pro.coinbase.com",
+    "passphrase": "kk58gokvbsj",
+    "api_key": "214e5684fd3cfc40a3a18afdbb5710e3",
+    "api_secret": "cDTEoKff5BBIziXOpNOZFdDOc2YcFmXJ4ADalvM35J3JAkzZHAqlwsvGt96SYuniC+IYkq9hFxrFzMNBDZ9hrA=="
+}
