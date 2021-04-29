@@ -2,6 +2,8 @@ import dashboard.app as dashboard
 import logging
 import logging.handlers
 
+server = dashboard.server
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 # create console handler and set level to debug
@@ -20,5 +22,4 @@ logger.addHandler(ch1)
 logger.addHandler(ch2)
 
 if __name__ == "__main__":
-    server = dashboard.server
     server.run()
