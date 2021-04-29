@@ -20,4 +20,5 @@ logger.addHandler(ch1)
 logger.addHandler(ch2)
 
 if __name__ == "__main__":
-    dashboard.server.run()
+    server = dashboard.server
+    server.run()
