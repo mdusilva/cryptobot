@@ -302,7 +302,11 @@ def run(env):
                 target_positions = {c: amount * target_weights.get(c, np.nan) for c in universe}
                 logger.debug("Target positions = %s" % target_positions)
                 # orders = {c: target_positions.get(c, np.nan) - current_positions.get(c, np.nan) for c in universe}
-                orders = create_orders(target_positions, current_positions, universe)
+                if len(market_caps) < 1:
+                    logger.debug("No market caps received so weights are unreliable. Keeping current weights")
+                    orders = []
+                else:
+                    orders = create_orders(target_positions, current_positions, universe)
                 logger.debug("Current orders = %s" % orders)
             except Exception as e:
                 logger.error("Error computing orders: %s" % e, exc_info=True)
