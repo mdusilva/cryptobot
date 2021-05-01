@@ -130,6 +130,13 @@ def get_wss_client(env, products):
     user_wsClient.start()
     return (ticker_wsClient, user_wsClient)
 
+def get_mkt_cap_key():
+    logger.debug("Getting marketcap API key...")
+    with open("mktcap.json") as json_file:
+        parameters = json.load(json_file)
+    key = parameters.get('key')
+    return key
+
 def get_configuration(session=None):
     close_session = False
     if session is None:
@@ -265,6 +272,7 @@ def get_target_weights(universe, market_caps, base_weight, portfolio_size):
 def run(env):
     session = model.connect_to_session()
     auth_client = get_rest_client(env)
+    mkt_cap_key = get_mkt_cap_key()
     configuration_parameters = get_configuration(session=session)
     timestep = int(configuration_parameters['timestep'])
     universe = configuration_parameters.get('universe')
@@ -281,7 +289,7 @@ def run(env):
         while True:
             orders = {}
             try:
-                market_caps = get_market_cap()
+                market_caps = get_market_cap(mkt_cap_key)
                 target_weights = get_target_weights(universe, market_caps, base_weight, portfolio_size)
                 accounts = auth_client.get_accounts()
                 current_orders = {c: sum([f for i, f in v.items() if i in user_wsClient.current_orders.get(c, [])]) for c, v in orders_submitted.items()}

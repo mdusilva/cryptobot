@@ -5,7 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def get_market_cap(api_key='87d2b2ac-718c-45c3-9d47-865344d973b5'):
+def get_market_cap(api_key):
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
     parameters = {
     'start':'1',
