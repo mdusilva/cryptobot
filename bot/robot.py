@@ -296,7 +296,7 @@ def run(env):
                 logger.debug("Current orders = %s" % current_orders)
                 logger.debug("Current prices = %s" % ticker_wsClient.last_prices)
                 current_positions = {acc.get('currency'): float(acc.get('balance')) for acc in accounts if acc.get('currency') in universe + [base_currency]}
-                write_positions(auth_client.get_time().get('iso'), current_positions, execution_id, session=session)
+                # write_positions(auth_client.get_time().get('iso'), current_positions, execution_id, session=session)
                 current_positions = {c: ticker_wsClient.last_prices.get(product_pairs.get(c), np.nan) * v if c != base_currency else v for c, v in current_positions.items()}
                 logger.debug("Current positions = %s" % current_positions)
                 amount = sum(current_positions.values())
@@ -337,6 +337,8 @@ def run(env):
                             write_submitted_order(r, execution_id, session=session)
                             logger.debug("Submitted orders for %s are now: %s" % (r['product_id'], orders_submitted[r['product_id']]))
                         logger.debug("Response is: %s" % r)
+                current_positions = {acc.get('currency'): float(acc.get('balance')) for acc in accounts if acc.get('currency') in universe + [base_currency]}
+                write_positions(auth_client.get_time().get('iso'), current_positions, execution_id, session=session)
             except Exception as e:
                 logger.error("Error sending orders: %s" % e, exc_info=True)
             time.sleep(timestep)
