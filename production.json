@@ -1,7 +1,7 @@
 {
     "rest_url": "https://api.pro.coinbase.com",
     "wss_url": "wss://ws-feed.pro.coinbase.com/",
-    "passphrase": "7o4fs7xoful",
-    "api_key": "55f4b749b428e9eaa792af98172a80a5",
-    "api_secret": "NVGJFQifeQryLwm1YAXprBMZw+F0B6vRzKFMLyNBbNCu7Pm/pQavQbh5OgqB4rf8N5eMxsx02C1CWeJcvhLPVA=="
+    "passphrase": "",
+    "api_key": "",
+    "api_secret": ""
 }
