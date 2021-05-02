@@ -99,7 +99,8 @@ def portfolio_value(values, current_fig):
                 Output('positions-graph', 'figure'),
                 Output('portfolio-value-graph', 'figure'),
                 Output('transaction-table', 'data'),
-                Output('current-value-text', 'children')
+                Output('current-value-text', 'children'),
+                Output('price-table', 'data')
                 ],
                 Input('interval-component', 'n_intervals'),
                 Input('execution-id-choice', 'value'),
@@ -127,6 +128,10 @@ def update_positions(n, execution_id, current_portfolio_fig):
         'Price': matched_ids.get(k, v).price, 
         'Side': filled_ids.get(k, v).side, 
         'Status': filled_ids.get(k, v).status} for k, v in pending_ids.items()]
+    prices_now = {
+        'Pair': n,
+        'Price': v for n, v in ticker_wsClient.last_prices.items()
+    }
     session.close()
     result_dic = {r.symbol: r.value for r in result}
     current_prices = {n.split('-', 1)[0]: v for n, v in ticker_wsClient.last_prices.items()}
@@ -134,7 +139,7 @@ def update_positions(n, execution_id, current_portfolio_fig):
     fig_positions = current_positions(result_dic)
     fig_portfolio_value = portfolio_value({pd.Timestamp(1).now(): result_dic}, current_portfolio_fig)
     current_value_text = "%s BTC" % sum(result_dic.values())
-    return fig_positions, fig_portfolio_value, orders_records, current_value_text
+    return fig_positions, fig_portfolio_value, orders_records, current_value_text, prices_now
 
 #Layout
 app.layout = html.Div([
@@ -156,6 +161,18 @@ app.layout = html.Div([
                 style={'color': '#1E1E1E'}
             ),
             dcc.Graph(id='positions-graph'),
+            html.H4('Current prices'),
+            dash_table.DataTable(
+                    id='price-table',
+                    columns=[{'id': c, 'name': c} for c in ['Pair', 'Price']],
+                    page_size=15,
+                    style_as_list_view=True,
+                    style_header={'backgroundColor': 'rgb(30, 30, 30)'},
+                    style_cell={
+                                'backgroundColor': 'rgb(50, 50, 50)',
+                                'color': 'white'
+                                },
+            ),
         ]),
         html.Div(className='eight columns div-for-charts bg-grey', children=[
             dcc.Graph(id='portfolio-value-graph'),
