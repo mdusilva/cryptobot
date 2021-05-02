@@ -128,10 +128,11 @@ def update_positions(n, execution_id, current_portfolio_fig):
         'Price': matched_ids.get(k, v).price, 
         'Side': filled_ids.get(k, v).side, 
         'Status': filled_ids.get(k, v).status} for k, v in pending_ids.items()]
-    prices_now = {
+    prices_records = [
+        {
         'Pair': n,
-        'Price': v for n, v in ticker_wsClient.last_prices.items()
-    }
+        'Price': v
+        } for n, v in ticker_wsClient.last_prices.items()]
     session.close()
     result_dic = {r.symbol: r.value for r in result}
     current_prices = {n.split('-', 1)[0]: v for n, v in ticker_wsClient.last_prices.items()}
@@ -139,7 +140,7 @@ def update_positions(n, execution_id, current_portfolio_fig):
     fig_positions = current_positions(result_dic)
     fig_portfolio_value = portfolio_value({pd.Timestamp(1).now(): result_dic}, current_portfolio_fig)
     current_value_text = "%s BTC" % sum(result_dic.values())
-    return fig_positions, fig_portfolio_value, orders_records, current_value_text, prices_now
+    return fig_positions, fig_portfolio_value, orders_records, current_value_text, prices_records
 
 #Layout
 app.layout = html.Div([
