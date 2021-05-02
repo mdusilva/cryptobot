@@ -173,6 +173,7 @@ app.layout = html.Div([
                                 'backgroundColor': 'rgb(50, 50, 50)',
                                 'color': 'white'
                                 },
+                    sort_action='native',
             ),
         ]),
         html.Div(className='eight columns div-for-charts bg-grey', children=[
