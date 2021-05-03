@@ -16,12 +16,13 @@ class UserClient(cbpro.WebsocketClient):
     def on_open(self):
         self.channels = ['user']
         self.last_prices = {}
+        logger.info("Connecting to USER channel")
         self.session = model.connect_to_session()
         self.current_orders = {}
 
     def on_message(self, msg):
+        logger.debug("Received USER message: %s" % msg)
         if 'type' in msg:
-            logger.debug("Received message: %s" % msg)
             if 'product_id' in msg:
                 product = msg.get('product_id')
                 order_id = msg.get('order_id')
@@ -70,6 +71,7 @@ class UserClient(cbpro.WebsocketClient):
 
     def on_close(self):
         self.session.close()
+        logger.error("Lost connection to USER")
         print("-- Goodbye! --")
 
 class TickerClient(cbpro.WebsocketClient):
@@ -78,14 +80,17 @@ class TickerClient(cbpro.WebsocketClient):
         self.url = "wss://ws-feed.pro.coinbase.com/"
         self.channels = ['ticker']
         self.last_prices = {}
+        logger.info("Connecting to TICKER channel")
         self.session = model.connect_to_session()
 
     def on_message(self, msg):
+        logger.debug("Receives TICKER msg: %s" % msg)
         if 'type' in msg and 'price' in msg and 'product_id' in msg:
             if msg.get('product_id') is not None:
                 self.last_prices[msg.get('product_id')] = float(msg.get('price'))
 
     def on_close(self):
+        logger.error("Lost connection to TICKER")
         self.session.close()
         print("-- Goodbye! --")
 
