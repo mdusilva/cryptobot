@@ -74,6 +74,12 @@ class UserClient(cbpro.WebsocketClient):
         logger.error("Lost connection to USER")
         print("-- Goodbye! --")
 
+    def on_error(self, e, data=None):
+        self.error = e
+        self.stop = True
+        logger.error("There was an error with USER subscription: %s" % e)
+        print('{} - data: {}'.format(e, data))
+
 class TickerClient(cbpro.WebsocketClient):
 
     def on_open(self):
@@ -84,7 +90,7 @@ class TickerClient(cbpro.WebsocketClient):
         self.session = model.connect_to_session()
 
     def on_message(self, msg):
-        logger.debug("Receives TICKER msg: %s" % msg)
+        #logger.debug("Receives TICKER msg: %s" % msg)
         if 'type' in msg and 'price' in msg and 'product_id' in msg:
             if msg.get('product_id') is not None:
                 self.last_prices[msg.get('product_id')] = float(msg.get('price'))
@@ -93,6 +99,12 @@ class TickerClient(cbpro.WebsocketClient):
         logger.error("Lost connection to TICKER")
         self.session.close()
         print("-- Goodbye! --")
+
+    def on_error(self, e, data=None):
+        self.error = e
+        self.stop = True
+        logger.error("There was an error with TICKER subscription: %s" % e)
+        print('{} - data: {}'.format(e, data))
 
 def get_rest_client(env):
     if env == "production":
