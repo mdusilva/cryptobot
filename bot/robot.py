@@ -14,7 +14,7 @@ logger.addHandler(logging.NullHandler())
 class UserClient(cbpro.WebsocketClient):
         
     def on_open(self):
-        self.channels = ['user']
+        self.channels = ['user', 'heartbeat ']
         self.last_prices = {}
         logger.info("Connecting to USER channel")
         self.session = model.connect_to_session()
@@ -88,6 +88,7 @@ class TickerClient(cbpro.WebsocketClient):
         self.last_prices = {}
         logger.info("Connecting to TICKER channel")
         self.session = model.connect_to_session()
+        self.error = None
 
     def on_message(self, msg):
         #logger.debug("Receives TICKER msg: %s" % msg)
@@ -98,6 +99,16 @@ class TickerClient(cbpro.WebsocketClient):
     def on_close(self):
         logger.error("Lost connection to TICKER")
         self.session.close()
+        if self.error is not None:
+            logger.info("Last connection was stopped in error, attempting reconnection...")
+            count = 1
+            self.start()
+            while count < 100 and not self.ws.connected:
+                time.sleep(30)
+                count += 1
+                self.start()
+                logger.debug("Attempt number %s" % count)
+
         print("-- Goodbye! --")
 
     def on_error(self, e, data=None):
