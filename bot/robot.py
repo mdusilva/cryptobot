@@ -14,7 +14,7 @@ logger.addHandler(logging.NullHandler())
 class UserClient(cbpro.WebsocketClient):
         
     def on_open(self):
-        self.channels = ['user', 'heartbeat ']
+        self.channels = ['user']
         self.last_prices = {}
         logger.info("Connecting to USER channel")
         self.session = model.connect_to_session()
