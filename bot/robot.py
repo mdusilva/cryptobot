@@ -286,7 +286,7 @@ def create_orders(target_positions, current_positions, universe):
     for c in universe:
         delta = target_positions.get(c, np.nan) - current_positions.get(c, np.nan)
         logger.debug("Order delta for %s is %s" % (c, np.round(delta, 5)))
-        if not np.isnan(delta) and abs(delta) > 0.001:
+        if not np.isnan(delta):
             orders.append((np.round(delta, 5), c))
     orders.sort()
     return orders
