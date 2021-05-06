@@ -28,10 +28,11 @@ class CBPriceServer(object):
         return subscribe_msg
 
     def _on_open(self, ws):
-        logger.debug("Connecting and sending subscribe message: %s" % self.subscribe_msg)
+        subscribe_msg = self._build_subscribe_msg()
+        logger.debug("Connecting and sending subscribe message: %s" % subscribe_msg)
         self._need_reconnection = True
         try:
-            ws.send(json.dumps(self._build_subscribe_msg()))
+            ws.send(json.dumps(subscribe_msg))
         except Exception as e:
             logger.error("Unable to send subscribe message, connection will probably be closed by server")
 
