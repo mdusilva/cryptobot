@@ -23,7 +23,7 @@ logger.addHandler(ch2)
 def main():
     pairs = None
     with open("configuration.json", "r") as configuration_file:
-        pairs = configuration_file.get('universe', []) + [configuration_file.get('base_currency', 'BTC')]
+        pairs = json.loads(configuration_file).get('universe', []) + [json.loads(configuration_file).get('base_currency', 'BTC')]
     if pairs:
         logger.info("Starting price stream for %s pairs" % pairs)
         price_streamer.streamer.CBPriceServer(pairs).connect()
