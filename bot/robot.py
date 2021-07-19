@@ -1,3 +1,4 @@
+import ws
 import cbpro
 import numpy as np
 import logging
@@ -11,14 +12,16 @@ import os
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-class UserClient(cbpro.WebsocketClient):
+class UserClient(ws.CBChannelServer):
+    
+    def __init__(self, pairs, **kwargs):
+        super().__init__(pairs, 'user', **kwargs)
         
     def on_open(self):
-        self.channels = ['user']
-        self.last_prices = {}
         logger.info("Connecting to USER channel")
         self.session = model.connect_to_session()
         self.current_orders = {}
+        self.error = None
 
     def on_message(self, msg):
         logger.debug("Received USER message: %s" % msg)
@@ -72,19 +75,18 @@ class UserClient(cbpro.WebsocketClient):
     def on_close(self):
         self.session.close()
         logger.error("Lost connection to USER")
-        print("-- Goodbye! --")
 
-    def on_error(self, e, data=None):
+    def on_error(self, e):
         self.error = e
         self.stop = True
         logger.error("There was an error with USER subscription: %s" % e)
-        print('{} - data: {}'.format(e, data))
 
-class TickerClient(cbpro.WebsocketClient):
+class TickerClient(ws.CBChannelServert):
+
+    def __init__(self, pairs, **kwargs):
+        super().__init__(pairs, 'ticker', **kwargs)
 
     def on_open(self):
-        self.url = "wss://ws-feed.pro.coinbase.com/"
-        self.channels = ['ticker']
         self.last_prices = {}
         logger.info("Connecting to TICKER channel")
         self.session = model.connect_to_session()
@@ -99,23 +101,11 @@ class TickerClient(cbpro.WebsocketClient):
     def on_close(self):
         logger.error("Lost connection to TICKER")
         self.session.close()
-        if self.error is not None:
-            logger.info("Last connection was stopped in error, attempting reconnection...")
-            count = 1
-            self.start()
-            while count < 100 and not self.ws.connected:
-                time.sleep(30)
-                count += 1
-                self.start()
-                logger.debug("Attempt number %s" % count)
 
-        print("-- Goodbye! --")
-
-    def on_error(self, e, data=None):
+    def on_error(self, e):
         self.error = e
         self.stop = True
         logger.error("There was an error with TICKER subscription: %s" % e)
-        print('{} - data: {}'.format(e, data))
 
 def get_rest_client(env):
     if env == "production":
@@ -152,8 +142,8 @@ def get_wss_client(env, products):
     key = client_parameters.get('api_key')
     b64secret = client_parameters.get('api_secret')
     passphrase = client_parameters.get('passphrase')
-    ticker_wsClient = TickerClient(products=products)
-    user_wsClient = UserClient(url=url, products=products, auth=True, api_key=key, api_secret=b64secret, api_passphrase=passphrase)
+    ticker_wsClient = TickerClient(products)
+    user_wsClient = UserClient(products, auth=True, api_key=key, api_secret=b64secret, api_passphrase=passphrase)
     ticker_wsClient.start()
     user_wsClient.start()
     return (ticker_wsClient, user_wsClient)
