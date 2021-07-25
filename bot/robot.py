@@ -1,4 +1,4 @@
-import ws
+from . import ws
 import cbpro
 import numpy as np
 import logging
@@ -8,24 +8,32 @@ import json
 from .marketcap import get_market_cap
 import model.db as model
 import os
+import threading
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
-class UserClient(ws.CBChannelServer):
+class UserClient(ws.CBChannelServer, threading.Thread):
     
     def __init__(self, pairs, **kwargs):
-        super().__init__(pairs, 'user', **kwargs)
-        
+        ws.CBChannelServer.__init__(self, pairs, 'user', **kwargs)
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self.current_orders = {}
+
+    def run(self):
+        self.connect()
+
     def on_open(self):
         logger.info("Connecting to USER channel")
         self.session = model.connect_to_session()
-        self.current_orders = {}
         self.error = None
 
     def on_message(self, msg):
-        logger.debug("Received USER message: %s" % msg)
-        if 'type' in msg:
+        if msg is not None:
+            msg = json.loads(msg)
+            logger.debug("Received USER message: %s" % msg)
+        if msg is not None and 'type' in msg:
             if 'product_id' in msg:
                 product = msg.get('product_id')
                 order_id = msg.get('order_id')
@@ -81,22 +89,29 @@ class UserClient(ws.CBChannelServer):
         self.stop = True
         logger.error("There was an error with USER subscription: %s" % e)
 
-class TickerClient(ws.CBChannelServert):
+class TickerClient(ws.CBChannelServer, threading.Thread):
 
     def __init__(self, pairs, **kwargs):
-        super().__init__(pairs, 'ticker', **kwargs)
+        ws.CBChannelServer.__init__(self, pairs, 'ticker', **kwargs)
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self.last_prices = {}
+
+    def run(self):
+        self.connect()
 
     def on_open(self):
-        self.last_prices = {}
         logger.info("Connecting to TICKER channel")
         self.session = model.connect_to_session()
         self.error = None
 
     def on_message(self, msg):
         #logger.debug("Receives TICKER msg: %s" % msg)
-        if 'type' in msg and 'price' in msg and 'product_id' in msg:
-            if msg.get('product_id') is not None:
-                self.last_prices[msg.get('product_id')] = float(msg.get('price'))
+        if msg is not None:
+            msg = json.loads(msg)
+            if 'type' in msg and 'price' in msg and 'product_id' in msg:
+                if msg.get('product_id') is not None:
+                    self.last_prices[msg.get('product_id')] = float(msg.get('price'))
 
     def on_close(self):
         logger.error("Lost connection to TICKER")

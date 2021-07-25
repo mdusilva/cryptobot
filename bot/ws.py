@@ -71,7 +71,7 @@ class CBChannelServer(object):
             logger.error("Unable to run on open function: %s" % e)
 
     def _on_message(self, ws, msg):
-        logger.debug("Received message: %s" % msg)
+        # logger.debug("Received message: %s" % msg)
         try:
             self.on_message(msg)
         except Exception as e:
