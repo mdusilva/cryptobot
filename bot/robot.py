@@ -286,13 +286,16 @@ def initialize_prices(wsClient, universe):
     else:
         return False
 
-def create_orders(target_positions, current_positions, universe):
+def create_orders(target_positions, current_positions, universe, min_increments):
     orders = []
     for c in universe:
+        n = len(min_increments.get(c, '').split('.')[-1])
+        if n == 0:
+            n = 2
         delta = target_positions.get(c, np.nan) - current_positions.get(c, np.nan)
-        logger.debug("Order delta for %s is %s" % (c, np.round(delta, 5)))
+        logger.debug("Order delta for %s is %s" % (c, np.round(delta, n)))
         if not np.isnan(delta):
-            orders.append((np.round(delta, 5), c))
+            orders.append((np.round(delta, n), c))
     orders.sort()
     return orders
 
@@ -325,6 +328,8 @@ def run(env):
             try:
                 market_caps = get_market_cap(mkt_cap_key)
                 target_weights = get_target_weights(universe, market_caps, base_weight, portfolio_size)
+                product_info = auth_client.get_products()
+                min_increment = {p.get('base_currency'): p.get('quote_increment', '') for p in product_info if (p.get('quote_currency') == base_currency and p.get('id') in product_pairs.values())}
                 accounts = auth_client.get_accounts()
                 current_orders = {c: sum([f for i, f in v.items() if i in user_wsClient.current_orders.get(c, [])]) for c, v in orders_submitted.items()}
                 logger.debug("Current orders = %s" % current_orders)
@@ -348,7 +353,7 @@ def run(env):
                     logger.debug("No market caps received so weights are unreliable. Keeping current weights")
                     orders = []
                 else:
-                    orders = create_orders(target_positions, current_positions, universe)
+                    orders = create_orders(target_positions, current_positions, universe, min_increment)
                 logger.debug("Current orders = %s" % orders)
             except Exception as e:
                 logger.error("Error computing orders: %s" % e, exc_info=True)
