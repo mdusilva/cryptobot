@@ -64,7 +64,7 @@ class Transaction(Base):
 
 def connect_to_session():
     db_string = "postgresql://msilva:manuel123@localhost:5432/postgres"
-    engine = sqlalchemy.create_engine(db_string, echo=True)
+    engine = sqlalchemy.create_engine(db_string, echo_pool=True, pool_recycle=3600, echo=False)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
