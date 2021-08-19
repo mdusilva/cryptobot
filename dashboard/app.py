@@ -1,5 +1,5 @@
 import sqlalchemy
-from . import ws
+from bot import ws
 import model.db as model
 import dash
 import dash_core_components as dcc
