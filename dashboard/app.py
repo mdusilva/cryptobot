@@ -1,5 +1,5 @@
 import sqlalchemy
-import cbpro
+from . import ws
 import model.db as model
 import dash
 import dash_core_components as dcc
@@ -12,29 +12,45 @@ import numpy as np
 import json
 import time
 import uuid
+import threading
 
-class TickerClient(cbpro.WebsocketClient):
+class TickerClient(ws.CBChannelServer, threading.Thread):
+
+    def __init__(self, pairs, **kwargs):
+        ws.CBChannelServer.__init__(self, pairs, 'ticker', **kwargs)
+        threading.Thread.__init__(self)
+        self.daemon = True
+        self.last_prices = {}
+
+    def run(self):
+        self.connect()
 
     def on_open(self):
-        self.url = "wss://ws-feed.pro.coinbase.com/"
-        self.channels = ['ticker']
-        self.last_prices = {}
+        print("Connecting to TICKER channel")
         self.session = model.connect_to_session()
+        self.error = None
 
     def on_message(self, msg):
-        if 'type' in msg and 'price' in msg and 'product_id' in msg:
-            if msg.get('product_id') is not None:
-                self.last_prices[msg.get('product_id')] = float(msg.get('price'))
+        #logger.debug("Receives TICKER msg: %s" % msg)
+        if msg is not None:
+            msg = json.loads(msg)
+            if 'type' in msg and 'price' in msg and 'product_id' in msg:
+                if msg.get('product_id') is not None:
+                    self.last_prices[msg.get('product_id')] = float(msg.get('price'))
 
     def on_close(self):
+        print("Lost connection to TICKER")
         self.session.close()
-        print("-- Goodbye! --")
 
+    def on_error(self, e):
+        self.error = e
+        self.stop = True
+        print("There was an error with TICKER subscription: %s" % e)
 session = model.connect_to_session()
 try:
     currency_pairs = session.execute(sqlalchemy.select(model.Pairs.symbol)).scalars().all()
 
-    ticker_wsClient = TickerClient(products=currency_pairs)
+    ticker_wsClient = TickerClient(currency_pairs)
     execution_ids = session.execute(sqlalchemy.select(model.Execution)).scalars().all()
     executions_dict = {e.id: e for e in execution_ids}
     execution_options = [{'label': e.name, 'value': str(e.id)} for e in execution_ids]
