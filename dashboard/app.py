@@ -14,6 +14,8 @@ import time
 import uuid
 import threading
 
+BASE_CURRENCY = 'BTC'
+
 class TickerClient(ws.CBChannelServer, threading.Thread):
 
     def __init__(self, pairs, **kwargs):
@@ -55,9 +57,9 @@ try:
     executions_dict = {e.id: e for e in execution_ids}
     execution_options = [{'label': e.name, 'value': str(e.id)} for e in execution_ids]
     ticker_wsClient.start()
-    t0 = time.time()
-    while len(ticker_wsClient.last_prices) != len(currency_pairs) and time.time() - t0 < 5 * 60:
-        time.sleep(1)
+    # t0 = time.time()
+    # while len(ticker_wsClient.last_prices) != len(currency_pairs) and time.time() - t0 < 5 * 60:
+    #     time.sleep(1)
 except Exception as e:
     raise
 
@@ -111,6 +113,14 @@ def portfolio_value(values, current_fig):
         fig = current_fig
     return fig
 
+def _get_current_values(positions, prices):
+    current_prices = {n.split('-', 1)[0]: v for n, v in ticker_wsClient.last_prices.items() if n.split('-', 1)[1] == BASE_CURRENCY}
+    current_positions = {n: v * current_prices.get(n) for n, v in positions.items() if n in current_prices}
+    if len(current_positions) != len(positions):
+        current_positions = {}
+    current_positions.update({BASE_CURRENCY: positions.get(BASE_CURRENCY, 0)})
+    return current_positions
+
 @app.callback([
                 Output('positions-graph', 'figure'),
                 Output('portfolio-value-graph', 'figure'),
@@ -151,11 +161,12 @@ def update_positions(n, execution_id, current_portfolio_fig):
         } for n, v in ticker_wsClient.last_prices.items()]
     session.close()
     result_dic = {r.symbol: r.value for r in result}
-    current_prices = {n.split('-', 1)[0]: v for n, v in ticker_wsClient.last_prices.items()}
-    result_dic = {n: v * current_prices.get(n) if current_prices.get(n) is not None else v for n, v in result_dic.items()}
+    # current_prices = {n.split('-', 1)[0]: v for n, v in ticker_wsClient.last_prices.items()}
+    # result_dic = {n: v * current_prices.get(n) if current_prices.get(n) is not None else v for n, v in result_dic.items()}
+    result_dic = _get_current_values(result_dic, ticker_wsClient.last_prices)
     fig_positions = current_positions(result_dic)
     fig_portfolio_value = portfolio_value({pd.Timestamp(1).now(): result_dic}, current_portfolio_fig)
-    current_value_text = "%s BTC" % sum(result_dic.values())
+    current_value_text = "%s %s" % (sum(result_dic.values()), BASE_CURRENCY)
     return fig_positions, fig_portfolio_value, orders_records, current_value_text, prices_records
 
 #Layout
