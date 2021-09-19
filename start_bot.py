@@ -23,8 +23,9 @@ logger.addHandler(ch2)
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('env', nargs='?', default='test', type=str, help="Chose environment", choices=['production', 'test'])
+    parser.add_argument('-c', '--configuration', nargs=1, default='configuration', type=str, help="Chose configration file")
     args = parser.parse_args()
-    logger.info("Starting bot in %s mode" % args.env)
+    logger.info("Starting bot in %s mode using %s configuration file" % (args.env, args.configuration+'.json'))
     bot.robot.run(args.env)
 
 if __name__ == "__main__":

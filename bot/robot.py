@@ -170,12 +170,14 @@ def get_mkt_cap_key():
     key = parameters.get('key')
     return key
 
-def get_configuration(session=None):
+def get_configuration(configuration_file=None, session=None):
     close_session = False
     if session is None:
         session = model.connect_to_session()
+    if configuration_file is None:
+        configuration_file = "configuration"
     configuration_parameters = {}
-    with open("configuration.json") as json_file:
+    with open(configuration_file+".json") as json_file:
         configuration_parameters = json.load(json_file)
     configuration_parameters['base_weight'] = float(configuration_parameters.get('base_weight'))
     universe = configuration_parameters.get('universe')
@@ -306,11 +308,11 @@ def get_target_weights(universe, market_caps, base_weight, portfolio_size):
     target_weights = {c: (1 - base_weight) / portfolio_size if c in current_selection else 0 for c in universe}
     return target_weights
 
-def run(env):
+def run(env, configuration_file=None):
     session = model.connect_to_session()
     auth_client = get_rest_client(env)
     mkt_cap_key = get_mkt_cap_key()
-    configuration_parameters = get_configuration(session=session)
+    configuration_parameters = get_configuration(configuration_file=configuration_file, session=session)
     timestep = int(configuration_parameters['timestep'])
     universe = configuration_parameters.get('universe')
     base_currency = configuration_parameters.get('base_currency')
