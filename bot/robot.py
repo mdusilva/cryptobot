@@ -305,9 +305,9 @@ def get_target_weights(universe, market_caps, base_weight, portfolio_size, portf
     current_caps = [(market_caps.get(c).get('rank'), c) for c in universe if c in market_caps]
     current_caps.sort()
     if portfolio_rank.upper() == 'SMALL':
-        current_selection = [v[-1] for v in current_caps[:portfolio_size]]
-    else:
         current_selection = [v[-1] for v in current_caps[-portfolio_size:]]
+    else:
+        current_selection = [v[-1] for v in current_caps[:portfolio_size]]
     target_weights = {c: (1 - base_weight) / portfolio_size if c in current_selection else 0 for c in universe}
     return target_weights
 
