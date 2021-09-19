@@ -301,10 +301,13 @@ def create_orders(target_positions, current_positions, universe, min_increments)
     orders.sort()
     return orders
 
-def get_target_weights(universe, market_caps, base_weight, portfolio_size):
+def get_target_weights(universe, market_caps, base_weight, portfolio_size, portfolio_rank='LARGE'):
     current_caps = [(market_caps.get(c).get('rank'), c) for c in universe if c in market_caps]
     current_caps.sort()
-    current_selection = [v[-1] for v in current_caps[:portfolio_size]]
+    if portfolio_rank.upper() == 'SMALL':
+        current_selection = [v[-1] for v in current_caps[:portfolio_size]]
+    else:
+        current_selection = [v[-1] for v in current_caps[-portfolio_size:]]
     target_weights = {c: (1 - base_weight) / portfolio_size if c in current_selection else 0 for c in universe}
     return target_weights
 
@@ -320,6 +323,7 @@ def run(env, configuration_file=None):
     product_pairs = configuration_parameters['product_pairs']
     execution_id = configuration_parameters['execution_id']
     portfolio_size = configuration_parameters['portfolio_size']
+    portfolio_rank = configuration_parameters.get('portfolio_rank', 'large')
     write_pairs(product_pairs, session=session)
     ticker_wsClient, user_wsClient = get_wss_client(env, list(product_pairs.values()))
     has_prices = initialize_prices(ticker_wsClient, configuration_parameters['universe'])
@@ -329,7 +333,7 @@ def run(env, configuration_file=None):
             orders = {}
             try:
                 market_caps = get_market_cap(mkt_cap_key)
-                target_weights = get_target_weights(universe, market_caps, base_weight, portfolio_size)
+                target_weights = get_target_weights(universe, market_caps, base_weight, portfolio_size, portfolio_rank=portfolio_rank)
                 product_info = auth_client.get_products()
                 min_increment = {p.get('base_currency'): p.get('quote_increment', '') for p in product_info if (p.get('quote_currency') == base_currency and p.get('id') in product_pairs.values())}
                 accounts = auth_client.get_accounts()
