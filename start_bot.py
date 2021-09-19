@@ -25,8 +25,8 @@ def main():
     parser.add_argument('env', nargs='?', default='test', type=str, help="Chose environment", choices=['production', 'test'])
     parser.add_argument('-c', '--configuration', nargs=1, default='configuration', type=str, help="Chose configration file")
     args = parser.parse_args()
-    logger.info("Starting bot in %s mode using %s configuration file" % (args.env, args.configuration+'.json'))
-    bot.robot.run(args.env)
+    logger.info("Starting bot in %s mode using %s configuration file" % (args.env, args.configuration[0]+'.json'))
+    bot.robot.run(args.env, configuration_file=args.configuration[0])
 
 if __name__ == "__main__":
     main()
