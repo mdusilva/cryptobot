@@ -9,7 +9,7 @@ def get_market_cap(api_key):
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
     parameters = {
     'start':'1',
-    'limit':'100',
+    'limit':'400',
     'convert':'EUR'
     }
     headers = {
