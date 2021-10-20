@@ -16,7 +16,7 @@ def main():
     ch1 = logging.StreamHandler()
     ch1.setLevel(logging.DEBUG)
     #File logging
-    ch2 = logging.handlers.TimedRotatingFileHandler('robot_'+args.configuration.split('_')[0]+'.log', when='D', interval=1, backupCount=5, delay=False, utc=True)
+    ch2 = logging.handlers.TimedRotatingFileHandler('robot_'+args.configuration.split('_')[-1]+'.log', when='D', interval=1, backupCount=5, delay=False, utc=True)
     # create formatter
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     # add formatter to ch
